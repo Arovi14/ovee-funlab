@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ovee FunLab</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Nunito', 'sans-serif'] },
+          colors: {
+            brandBlue: '#1CB0F6', brandBlueDark: '#1899D6',
+            brandGreen: '#58CC02', brandGreenDark: '#46A302',
+            brandYellow: '#FFC800', brandYellowDark: '#E5B400',
+            brandRed: '#FF4B4B', brandRedDark: '#EA2B2B',
+            brandPurple: '#CE82FF', brandPurpleDark: '#A568CC',
+            bgSoft: '#F7F9FC', textDark: '#3C3C3C', textMuted: '#AFB2B6'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body { background-color: #F7F9FC; color: #3C3C3C; -webkit-tap-highlight-color: transparent; }
+    
+    .btn-3d { position: relative; transition: all 0.15s ease; user-select: none; border-radius: 16px; font-weight: 800; text-align: center; cursor: pointer; }
+    .btn-3d:active { transform: translateY(4px); margin-bottom: -4px; }
+    
+    .btn-blue { background: #1CB0F6; color: white; border-bottom: 4px solid #1899D6; }
+    .btn-blue:active { border-bottom: 0px solid #1899D6; }
+    .btn-green { background: #58CC02; color: white; border-bottom: 4px solid #46A302; }
+    .btn-green:active { border-bottom: 0px solid #46A302; }
+    .btn-red { background: #FF4B4B; color: white; border-bottom: 4px solid #EA2B2B; }
+    .btn-red:active { border-bottom: 0px solid #EA2B2B; }
+    .btn-purple { background: #CE82FF; color: white; border-bottom: 4px solid #A568CC; }
+    .btn-purple:active { border-bottom: 0px solid #A568CC; }
+
+    .fun-card { background: white; border: 2px solid #E5E5E5; border-radius: 24px; box-shadow: 0 4px 0 #E5E5E5; transition: all 0.2s ease; }
+    .fun-card:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #E5E5E5; }
+
+    .fun-input { width: 100%; padding: 16px 20px; background: #F7F9FC; border: 2px solid #E5E5E5; border-radius: 16px; font-size: 1.1rem; font-weight: 700; color: #3C3C3C; outline: none; transition: 0.2s; }
+    .fun-input:focus { border-color: #1CB0F6; background: white; }
+
+    .fun-slider { -webkit-appearance: none; width: 100%; height: 12px; background: #E5E5E5; border-radius: 10px; outline: none; margin: 15px 0; }
+    .fun-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1CB0F6; cursor: pointer; border: 4px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    
+    .hide { display: none !important; }
+    .icon-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 15px auto; }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <header id="mainHeader" class="hide bg-white border-b-2 border-gray-200 sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-brandYellow rounded-xl flex items-center justify-center text-white text-xl shadow-[0_3px_0_#E5B400]"><i class="fa-solid fa-rocket"></i></div>
+      <h1 class="text-2xl font-black text-textDark tracking-tight">Ovee <span class="text-textMuted font-bold">FunLab</span></h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <span id="lblUserRole" class="hidden md:inline-block font-bold text-brandBlueDark bg-blue-50 px-4 py-2 rounded-full border-2 border-blue-100"></span>
+      <button class="btn-3d btn-red px-6 py-2 text-sm" onclick="logout()"><i class="fa-solid fa-right-from-bracket mr-2"></i>Exit</button>
+    </div>
+  </header>
+
+  <div id="viewLogin" class="flex-1 flex flex-col justify-center items-center p-6 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMiIgZmlsbD0iI2U1ZTVlNSIvPjwvc3ZnPg==')]">
+    <div class="fun-card p-8 md:p-12 w-full max-w-md text-center bg-white">
+      <div class="w-24 h-24 bg-brandBlue rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-5xl shadow-[0_6px_0_#1899D6] rotate-3"><i class="fa-solid fa-graduation-cap"></i></div>
+      <h1 class="text-4xl font-black text-textDark mb-2">Welcome Back!</h1>
+      <p class="text-textMuted font-bold text-lg mb-8">Ready to learn something new?</p>
+      <input type="text" id="txtLoginId" class="fun-input mb-4" placeholder="Enter your ID">
+      <input type="password" id="txtLoginPass" class="fun-input mb-8" placeholder="Enter your Password">
+      <button id="btnLogin" class="btn-3d btn-blue w-full py-4 text-xl" onclick="processLogin()">Let's Go! <i class="fa-solid fa-arrow-right ml-2"></i></button>
+      <p id="loginStatus" class="mt-4 font-bold text-brandRed"></p>
+    </div>
+  </div>
+
+  <div id="viewStudent" class="hide max-w-6xl mx-auto w-full p-6 mt-6">
+    <div class="mb-10 text-center md:text-left">
+      <h2 class="text-4xl font-black text-textDark mb-2">My Learning Path</h2>
+      <p class="text-xl text-textMuted font-bold">Pick a mission and earn your stars today.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="fun-card p-8 text-center flex flex-col cursor-pointer hover:border-brandGreen" onclick="launchSimulator('Financial Math')">
+        <div class="icon-circle bg-green-100 text-brandGreen"><i class="fa-solid fa-coins"></i></div>
+        <h3 class="text-2xl font-black text-textDark mb-3">Money Master</h3>
+        <p class="text-textMuted font-bold mb-6 flex-1">Learn the 50/30/20 rule. Balance your budget and save the day!</p>
+        <button class="btn-3d btn-green w-full py-3">Start Mission</button>
+      </div>
+      <div class="fun-card p-8 text-center flex flex-col cursor-pointer hover:border-brandPurple" onclick="launchSimulator('Digital Literacy')">
+        <div class="icon-circle bg-purple-100 text-brandPurple"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3 class="text-2xl font-black text-textDark mb-3">Cyber Shield</h3>
+        <p class="text-textMuted font-bold mb-6 flex-1">Hackers are attacking! Build an unbreakable password to defend the server.</p>
+        <button class="btn-3d btn-purple w-full py-3">Start Mission</button>
+      </div>
+      <div class="fun-card p-8 text-center flex flex-col cursor-pointer hover:border-orange-500" onclick="launchSimulator('Applied Science')">
+        <div class="icon-circle bg-orange-100 text-orange-500"><i class="fa-solid fa-person-running"></i></div>
+        <h3 class="text-2xl font-black text-textDark mb-3">Sports Science</h3>
+        <p class="text-textMuted font-bold mb-6 flex-1">Find the perfect center of gravity to hit the ultimate cricket shot.</p>
+        <button class="btn-3d w-full py-3 bg-orange-500 text-white border-b-4 border-orange-600">Start Mission</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewSimulator" class="hide max-w-3xl mx-auto w-full p-6 mt-6">
+    <button class="font-bold text-textMuted hover:text-textDark mb-6 text-lg transition-colors" onclick="closeSimulator()"><i class="fa-solid fa-angle-left mr-2"></i> Back to Map</button>
+    <div class="fun-card p-8 md:p-10">
+      
+      <div id="simFinance" class="hide text-center">
+        <div class="inline-block p-4 bg-green-100 text-brandGreen rounded-2xl text-4xl mb-4"><i class="fa-solid fa-piggy-bank"></i></div>
+        <h2 class="text-3xl font-black text-textDark mb-2">Balance the Ledger</h2>
+        <p class="text-lg font-bold text-textMuted mb-6">Income: ₹10,000. Follow the 50/30/20 rule to unlock the next level.</p>
+        <div id="simBalanceDisplay" class="bg-gray-100 rounded-2xl p-6 mb-8 border-2 border-gray-200 transition-colors">
+          <h3 class="text-xl font-bold text-gray-500 uppercase tracking-wide mb-1">Remaining Cash</h3>
+          <div class="text-4xl font-black text-textDark">₹<span id="simRemaining">10000</span></div>
+        </div>
+        <div class="text-left space-y-6 bg-gray-50 p-6 rounded-2xl border-2 border-gray-100">
+          <div><div class="flex justify-between font-black text-lg text-textDark mb-2"><span>🏠 Needs (50%)</span><span id="lblNeeds" class="text-brandBlue">₹0</span></div><input type="range" id="slideNeeds" class="fun-slider" min="0" max="10000" step="500" value="0" oninput="updateFinance()"></div>
+          <div><div class="flex justify-between font-black text-lg text-textDark mb-2"><span>🎮 Wants (30%)</span><span id="lblWants" class="text-brandPurple">₹0</span></div><input type="range" id="slideWants" class="fun-slider" min="0" max="10000" step="500" value="0" oninput="updateFinance()"></div>
+          <div><div class="flex justify-between font-black text-lg text-textDark mb-2"><span>🏦 Savings (20%)</span><span id="lblSavings" class="text-brandGreen">₹0</span></div><input type="range" id="slideSavings" class="fun-slider" min="0" max="10000" step="500" value="0" oninput="updateFinance()"></div>
+        </div>
+        <button id="btnSubmitFinance" class="btn-3d w-full py-4 mt-8 text-xl bg-gray-300 text-gray-500 border-b-4 border-gray-400 cursor-not-allowed pointer-events-none" onclick="submitSimulator('Financial Math')">Check Answer</button>
+      </div>
+
+      <div id="simDigital" class="hide text-center">
+        <div class="inline-block p-4 bg-purple-100 text-brandPurple rounded-2xl text-4xl mb-4"><i class="fa-solid fa-user-secret"></i></div>
+        <h2 class="text-3xl font-black text-textDark mb-2">Hack the Mainframe</h2>
+        <p class="text-lg font-bold text-textMuted mb-6">Create a master password to lock the hackers out.</p>
+        <input type="text" id="txtPassword" class="fun-input text-center text-3xl tracking-widest py-6 mb-8" placeholder="Type here..." oninput="updateCyber()">
+        <div class="flex flex-wrap justify-center gap-3 mb-8">
+          <div id="reqLen" class="px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl border-2 border-gray-200">8+ Characters</div>
+          <div id="reqUp" class="px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl border-2 border-gray-200">Uppercase Letter</div>
+          <div id="reqNum" class="px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl border-2 border-gray-200">Number</div>
+          <div id="reqSym" class="px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl border-2 border-gray-200">Symbol (@#$)</div>
+        </div>
+        <button id="btnSubmitDigital" class="btn-3d w-full py-4 text-xl bg-gray-300 text-gray-500 border-b-4 border-gray-400 cursor-not-allowed pointer-events-none" onclick="submitSimulator('Digital Literacy')">Set Password</button>
+      </div>
+
+      <div id="simScience" class="hide text-center">
+        <div class="inline-block p-4 bg-orange-100 text-orange-500 rounded-2xl text-4xl mb-4"><i class="fa-solid fa-weight-scale"></i></div>
+        <h2 class="text-3xl font-black text-textDark mb-2">Perfect Balance</h2>
+        <p class="text-lg font-bold text-textMuted mb-6">Find the perfect center of gravity for maximum hitting power.</p>
+        <div id="simBioDisplay" class="bg-red-100 border-2 border-red-200 rounded-2xl p-6 mb-8 transition-colors">
+          <h3 class="text-xl font-bold text-red-400 uppercase tracking-wide mb-1">Athlete Status</h3>
+          <div id="bioStatus" class="text-3xl font-black text-brandRed">Off-Balance!</div>
+        </div>
+        <div class="text-left bg-gray-50 p-6 rounded-2xl border-2 border-gray-100">
+          <div class="flex justify-between font-black text-lg text-textDark mb-4"><span>⚖️ Weight Shift:</span><span id="lblWeight" class="text-brandBlue">Leaning Forward</span></div>
+          <input type="range" id="slideBio" class="fun-slider" min="0" max="100" step="1" value="0" oninput="updateBio()">
+        </div>
+        <button id="btnSubmitScience" class="btn-3d w-full py-4 mt-8 text-xl bg-gray-300 text-gray-500 border-b-4 border-gray-400 cursor-not-allowed pointer-events-none" onclick="submitSimulator('Applied Science')">Lock Stance</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="viewTeacher" class="hide max-w-6xl mx-auto w-full p-6 mt-6">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div>
+        <h2 class="text-4xl font-black text-textDark mb-2">Teacher Analytics</h2>
+        <p class="text-xl text-textMuted font-bold">Live classroom telemetry</p>
+      </div>
+      <button class="btn-3d btn-blue px-6 py-3" onclick="generatePDF()"><i class="fa-solid fa-file-pdf mr-2"></i>Export CSR Report</button>
+    </div>
+    <div class="fun-card p-6 md:p-8 overflow-x-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-black text-textDark">Recent Completions</h3>
+        <button class="font-bold text-brandBlue hover:text-brandBlueDark" onclick="fetchLiveAnalytics()"><i class="fa-solid fa-rotate-right mr-1"></i>Refresh</button>
+      </div>
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 text-gray-400 font-bold uppercase text-sm border-b-2 border-gray-200">
+            <th class="p-4 rounded-tl-xl">Student ID</th><th class="p-4">Mission</th><th class="p-4">Status</th><th class="p-4 rounded-tr-xl">Time</th>
+          </tr>
+        </thead>
+        <tbody id="tblAnalytics" class="text-lg font-bold text-textDark">
+          <tr><td colspan="4" class="text-center p-8 text-textMuted">Syncing data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="viewAdmin" class="hide max-w-6xl mx-auto w-full p-6 mt-6">
+    <h2 class="text-4xl font-black text-textDark mb-8">System Admin</h2>
+    <div class="flex flex-col md:flex-row gap-8">
+      <div class="md:w-64 flex flex-col gap-3">
+        <button class="fun-card p-4 text-left font-black text-lg text-brandBlue border-brandBlue" id="tabSchools" onclick="switchAdminTab('schools')"><i class="fa-solid fa-school mr-2"></i> Schools</button>
+        <button class="fun-card p-4 text-left font-black text-lg text-textMuted hover:text-textDark" id="tabUsers" onclick="switchAdminTab('users')"><i class="fa-solid fa-users mr-2"></i> Users</button>
+      </div>
+      <div class="flex-1 fun-card p-6 md:p-8">
+        <div id="panelSchools">
+          <h3 class="text-2xl font-black text-textDark mb-6">Add School</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <input type="text" id="schId" class="fun-input" placeholder="School ID">
+            <input type="text" id="schName" class="fun-input" placeholder="School Name">
+            <input type="text" id="schUdise" class="fun-input" placeholder="UDISE">
+          </div>
+          <button class="btn-3d btn-green px-8 py-3 mb-8" onclick="addSchool()">Save School</button>
+        </div>
+        <div id="panelUsers" class="hide">
+          <div class="bg-blue-50 border-2 border-dashed border-blue-200 rounded-2xl p-8 text-center mb-8">
+            <h4 class="text-xl font-black text-brandBlueDark mb-4">Bulk Upload CSV</h4>
+            <input type="file" id="csvFileInput" accept=".csv" class="mb-4 block mx-auto text-textMuted font-bold">
+            <button class="btn-3d btn-blue px-8 py-3" onclick="processCSV()">Upload Users</button>
+            <p id="csvStatus" class="mt-4 font-bold"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = 'https://hqwmgihigwpjebqyakkn.supabase.co'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxd21naWhpZ3dwamVicXlha2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NzIyMzksImV4cCI6MjEwODI0ODIzOX0.8OPjyi8tMKV4PYZzLiI48801eAmZlHdUK_vr5KuNMIA';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    let currentUser = null; let analyticsDataCache = [];
+
+    async function processLogin() {
+      const id = document.getElementById('txtLoginId').value.trim();
+      const pass = document.getElementById('txtLoginPass').value.trim();
+      const statusLbl = document.getElementById('loginStatus');
+      const btn = document.getElementById('btnLogin');
+
+      if (!id || !pass) return statusLbl.innerText = "Oops! ID and Password needed.";
+      btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i> Checking...";
+      statusLbl.innerText = "";
+
+      if (!navigator.onLine) {
+        const savedUserStr = localStorage.getItem('funlab_user_' + id);
+        if (savedUserStr) {
+          const savedUser = JSON.parse(savedUserStr);
+          if (savedUser.password_hash === pass) {
+            completeLoginRouting(savedUser);
+            return;
+          }
+        }
+        statusLbl.innerText = "Tablet is offline. Enter a previously saved ID/Password.";
+        btn.innerHTML = "Let's Go! <i class='fa-solid fa-arrow-right ml-2'></i>";
+        return;
+      }
+
+      try {
+        const { data: user, error } = await supabaseClient.from('users').select('*').eq('user_id', id).eq('password_hash', pass).single();
+        if (error || !user) throw new Error("Incorrect ID or Password!");
+        localStorage.setItem('funlab_user_' + id, JSON.stringify(user));
+        completeLoginRouting(user);
+      } catch (err) { statusLbl.innerText = "Network Error or Invalid Credentials."; }
+      btn.innerHTML = "Let's Go! <i class='fa-solid fa-arrow-right ml-2'></i>";
+    }
+
+    function completeLoginRouting(user) {
+      currentUser = user;
+      document.getElementById('viewLogin').classList.add('hide');
+      document.getElementById('mainHeader').classList.remove('hide');
+      document.getElementById('lblUserRole').innerText = `${user.full_name} (${user.role})`;
+      if (user.role === 'Super Admin') document.getElementById('viewAdmin').classList.remove('hide');
+      else if (user.role === 'Teacher' || user.role === 'Principal') { document.getElementById('viewTeacher').classList.remove('hide'); fetchLiveAnalytics(); } 
+      else if (user.role === 'Student') document.getElementById('viewStudent').classList.remove('hide');
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('txtLoginId').value = ''; document.getElementById('txtLoginPass').value = '';
+      ['viewAdmin', 'viewTeacher', 'viewStudent', 'viewSimulator', 'mainHeader'].forEach(id => document.getElementById(id).classList.add('hide'));
+      document.getElementById('viewLogin').classList.remove('hide');
+      document.getElementById('loginStatus').innerText = "";
+    }
+
+    function generatePDF() {
+      const { jsPDF } = window.jspdf; const doc = new jsPDF();
+      doc.setFontSize(22); doc.setTextColor(28, 176, 246); doc.text("Ovee FunLab CSR Report", 14, 20);
+      doc.setFontSize(12); doc.setTextColor(60, 60, 60); doc.text(`Generated by: ${currentUser.full_name} | Date: ${new Date().toLocaleDateString()}`, 14, 30);
+      const tableRows = analyticsDataCache.map(r => [r.student_id, r.subject, `${r.chapter_status} (${r.exam_score}%)`, new Date(r.completed_at).toLocaleDateString()]);
+      doc.autoTable({ startY: 40, head: [['Student ID', 'Mission', 'Status', 'Date']], body: tableRows, headStyles: { fillColor: [88, 204, 2] }});
+      doc.save(`FunLab_Report_${new Date().getTime()}.pdf`);
+    }
+
+    async function fetchLiveAnalytics() {
+      const tbl = document.getElementById('tblAnalytics');
+      if (!navigator.onLine) return tbl.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-brandRed font-bold">You are offline. Connect to Wi-Fi to sync class data.</td></tr>`;
+      tbl.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-textMuted"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing...</td></tr>`;
+      const { data, error } = await supabaseClient.from('content_analytics').select('*').order('completed_at', { ascending: false });
+      if (error || !data || data.length === 0) return tbl.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-textMuted">No missions completed yet.</td></tr>`;
+      analyticsDataCache = data; tbl.innerHTML = '';
+      data.forEach(r => {
+        tbl.innerHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="p-4 text-brandBlue">${r.student_id}</td><td class="p-4">${r.subject}</td><td class="p-4"><span class="bg-green-100 text-brandGreenDark px-3 py-1 rounded-full text-sm">${r.chapter_status}</span></td><td class="p-4 text-sm text-textMuted">${new Date(r.completed_at).toLocaleTimeString()}</td></tr>`;
+      });
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('tabSchools').className = "fun-card p-4 text-left font-black text-lg text-textMuted hover:text-textDark";
+      document.getElementById('tabUsers').className = "fun-card p-4 text-left font-black text-lg text-textMuted hover:text-textDark";
+      document.getElementById('panelSchools').classList.add('hide'); document.getElementById('panelUsers').classList.add('hide');
+      if (tab === 'schools') { document.getElementById('tabSchools').className = "fun-card p-4 text-left font-black text-lg text-brandBlue border-brandBlue"; document.getElementById('panelSchools').classList.remove('hide'); } 
+      else { document.getElementById('tabUsers').className = "fun-card p-4 text-left font-black text-lg text-brandBlue border-brandBlue"; document.getElementById('panelUsers').classList.remove('hide'); }
+    }
+    async function addSchool() {
+      const id = document.getElementById('schId').value.trim(); const name = document.getElementById('schName').value.trim();
+      if(!id || !name) return alert("Required: School ID and Name");
+      await supabaseClient.from('schools').insert([{ school_id: id, school_name: name, udise_code: document.getElementById('schUdise').value.trim() }]);
+      document.getElementById('schId').value = ''; document.getElementById('schName').value = ''; document.getElementById('schUdise').value = ''; alert("School Added!");
+    }
+    function processCSV() {
+      const file = document.getElementById('csvFileInput').files[0]; const status = document.getElementById('csvStatus');
+      if (!file) return status.innerText = "Select a file first!";
+      Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(res) {
+          status.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Uploading...";
+          const formatted = res.data.map(r => ({ user_id: r.user_id, full_name: r.full_name, role: r.role, contact_number: r.contact_number||'00', password_hash: r.password_hash||'123' }));
+          const { error } = await supabaseClient.from('users').insert(formatted);
+          status.innerHTML = error ? `<span class="text-brandRed">Error: ${error.message}</span>` : `<span class="text-brandGreen">Success! ${formatted.length} users added.</span>`;
+      }});
+    }
+
+    function launchSimulator(moduleName) {
+      document.getElementById('viewStudent').classList.add('hide'); document.getElementById('viewSimulator').classList.remove('hide');
+      ['simFinance', 'simDigital', 'simScience'].forEach(id => document.getElementById(id).classList.add('hide'));
+      if(moduleName === 'Financial Math') { document.getElementById('simFinance').classList.remove('hide'); document.getElementById('slideNeeds').value=0; document.getElementById('slideWants').value=0; document.getElementById('slideSavings').value=0; updateFinance(); } 
+      else if (moduleName === 'Digital Literacy') { document.getElementById('simDigital').classList.remove('hide'); document.getElementById('txtPassword').value=''; updateCyber(); } 
+      else if (moduleName === 'Applied Science') { document.getElementById('simScience').classList.remove('hide'); document.getElementById('slideBio').value=0; updateBio(); }
+    }
+    function closeSimulator() { document.getElementById('viewSimulator').classList.add('hide'); document.getElementById('viewStudent').classList.remove('hide'); }
+
+    async function submitSimulator(moduleName) {
+      const btn = document.getElementById(`btnSubmit${moduleName.split(' ')[0]}`); btn.innerText = "Saving...";
+      const payload = { student_id: currentUser.user_id, subject: moduleName, quarter: "Q1", chapter_status: "Mastered", exam_score: 100 };
+      
+      if (!navigator.onLine) {
+        let offlineQueue = JSON.parse(localStorage.getItem('funlab_offline_queue')) || [];
+        offlineQueue.push(payload); localStorage.setItem('funlab_offline_queue', JSON.stringify(offlineQueue));
+        alert("Mission Accomplished! Score saved offline. It will sync when Wi-Fi connects.");
+        closeSimulator(); btn.innerText = "Check Answer"; return;
+      }
+      try {
+        await supabaseClient.from('content_analytics').insert([payload]);
+        alert("Mission Accomplished! +100 XP (Synced to Cloud)"); closeSimulator();
+      } catch (err) { alert("Error: " + err.message); }
+      btn.innerText = "Check Answer";
+    }
+
+    function updateFinance() {
+      const n = parseInt(document.getElementById('slideNeeds').value); const w = parseInt(document.getElementById('slideWants').value); const s = parseInt(document.getElementById('slideSavings').value);
+      const rem = 10000 - (n + w + s);
+      document.getElementById('lblNeeds').innerText = `₹${n}`; document.getElementById('lblWants').innerText = `₹${w}`; document.getElementById('lblSavings').innerText = `₹${s}`;
+      document.getElementById('simRemaining').innerText = rem;
+      const ro = document.getElementById('simBalanceDisplay'); const btn = document.getElementById('btnSubmitFinance');
+      
+      btn.className = "btn-3d w-full py-4 mt-8 text-xl bg-gray-300 text-gray-500 border-b-4 border-gray-400 cursor-not-allowed pointer-events-none";
+      if (n === 5000 && w === 3000 && s === 2000) {
+        ro.className = "bg-green-100 rounded-2xl p-6 mb-8 border-2 border-green-200 transition-colors"; document.getElementById('simRemaining').className = "text-brandGreen"; document.getElementById('simRemaining').innerText = "Perfect!";
+        btn.className = "btn-3d btn-green w-full py-4 mt-8 text-xl pointer-events-auto"; btn.disabled = false;
+      } else if (rem < 0) { ro.className = "bg-red-100 rounded-2xl p-6 mb-8 border-2 border-red-200 transition-colors"; document.getElementById('simRemaining').className = "text-brandRed"; btn.disabled = true; } 
+      else { ro.className = "bg-gray-100 rounded-2xl p-6 mb-8 border-2 border-gray-200 transition-colors"; document.getElementById('simRemaining').className = "text-textDark"; btn.disabled = true; }
+    }
+
+    function updateCyber() {
+      const p = document.getElementById('txtPassword').value;
+      const checks = [p.length >= 8, /[A-Z]/.test(p), /[0-9]/.test(p), /[^A-Za-z0-9]/.test(p)];
+      const ids = ['reqLen', 'reqUp', 'reqNum', 'reqSym'];
+      checks.forEach((c, i) => document.getElementById(ids[i]).className = c ? "px-4 py-2 bg-green-100 text-brandGreenDark font-bold rounded-xl border-2 border-green-200" : "px-4 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl border-2 border-gray-200");
+      const btn = document.getElementById('btnSubmitDigital');
+      if(checks.every(Boolean)) { btn.className = "btn-3d btn-purple w-full py-4 text-xl pointer-events-auto mt-8"; btn.disabled = false; } 
+      else { btn.className = "btn-3d w-full py-4 text-xl bg-gray-300 text-gray-500 border-b-4 border-gray-400 cursor-not-allowed pointer-events-none mt-8"; btn.disabled = true; }
+    }
+
+    function updateBio() {
+      const v = parseInt(document.getElementById('slideBio').value);
+      const ro = document.getElementById('simBioDisplay'); const stat = document.getElementById('bioStatus'); const lbl = document.getElementById('lblWeight'); const btn = document.getElementById('btnSubmitScience');
+      btn.className = "btn-3d w-full py-4 mt-8 text-xl bg-gray-300 text-gray-500 border-b-4 border-gray-400 cursor-not-allowed pointer-events-none"; btn.disabled = true;
+      if (v < 45) { lbl.innerText = "Leaning Forward"; stat.innerText = "Off-Balance!"; stat.className = "text-3xl font-black text-brandRed"; ro.className = "bg-red-100 border-2 border-red-200 rounded-2xl p-6 mb-8"; } 
+      else if (v > 55) { lbl.innerText = "Weight on Back Foot"; stat.innerText = "Losing Power!"; stat.className = "text-3xl font-black text-brandRed"; ro.className = "bg-red-100 border-2 border-red-200 rounded-2xl p-6 mb-8"; } 
+      else { lbl.innerText = "Perfectly Centered"; stat.innerText = "Maximum Power!"; stat.className = "text-3xl font-black text-brandGreen"; ro.className = "bg-green-100 border-2 border-green-200 rounded-2xl p-6 mb-8"; btn.className = "btn-3d w-full py-4 mt-8 text-xl bg-orange-500 text-white border-b-4 border-orange-600 pointer-events-auto"; btn.disabled = false; }
+    }
+    
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(console.error); });
+    }
+// --- AUTOMATIC BACKGROUND SYNC ---
+    window.addEventListener('online', async () => {
+      let offlineQueue = JSON.parse(localStorage.getItem('funlab_offline_queue')) || [];
+      if (offlineQueue.length > 0) {
+        console.log(`Syncing ${offlineQueue.length} offline records to cloud...`);
+        try {
+          const { error } = await supabaseClient.from('content_analytics').insert(offlineQueue);
+          if (!error) {
+            localStorage.removeItem('funlab_offline_queue'); // Clear the queue
+            alert(`✅ Synchronized ${offlineQueue.length} offline missions to the Teacher's Dashboard!`);
+            // Refresh table if teacher is currently looking at it
+            if (currentUser && (currentUser.role === 'Teacher' || currentUser.role === 'Principal')) {
+              fetchLiveAnalytics();
+            }
+          }
+        } catch (err) { console.error("Auto-sync failed:", err); }
+      }
+    });
+  </script>
+</body>
+</html>
