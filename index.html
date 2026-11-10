@@ -68,7 +68,7 @@
       <div class="w-10 h-10 bg-brandYellow rounded-xl flex items-center justify-center text-white text-xl shadow-[0_3px_0_#E5B400]"><i class="fa-solid fa-rocket"></i></div>
       <h1 class="text-2xl font-black text-textDark tracking-tight">Ovee <span class="text-textMuted font-bold">FunLab</span></h1>
     </div>
-      <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4">
       <button class="btn-3d bg-brandYellow text-white border-b-4 border-brandYellowDark px-4 py-2 text-sm" onclick="openSyllabus()"><i class="fa-solid fa-book-open mr-2"></i>Mission Guide</button>
       <span id="lblUserRole" class="hidden md:inline-block font-bold text-brandBlueDark bg-blue-50 px-4 py-2 rounded-full border-2 border-blue-100"></span>
       <button class="btn-3d btn-red px-6 py-2 text-sm" onclick="logout()"><i class="fa-solid fa-right-from-bracket mr-2"></i>Exit</button>
@@ -221,6 +221,21 @@
     </div>
   </div>
 
+  <!-- CURRICULUM SYLLABUS VIEW -->
+  <div id="viewCurriculum" class="hide max-w-4xl mx-auto w-full p-6 mt-6">
+    <button class="font-bold text-textMuted hover:text-textDark mb-6 text-lg transition-colors" onclick="closeSyllabus()"><i class="fa-solid fa-angle-left mr-2"></i> Back</button>
+    <div class="flex items-center gap-4 mb-8">
+      <div class="w-16 h-16 bg-brandYellow rounded-2xl flex items-center justify-center text-white text-3xl shadow-[0_4px_0_#E5B400]"><i class="fa-solid fa-map-location-dot"></i></div>
+      <div>
+        <h2 class="text-4xl font-black text-textDark mb-1">30-Day Pilot Guide</h2>
+        <p class="text-lg text-textMuted font-bold">Class 7 Maharashtra State Board (SSC)</p>
+      </div>
+    </div>
+    <div class="space-y-4" id="curriculumList">
+      <!-- JavaScript will inject the 30-day curriculum here -->
+    </div>
+  </div>
+
   <script>
     const supabaseUrl = 'https://hqwmgihigwpjebqyakkn.supabase.co'; 
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxd21naWhpZ3dwamVicXlha2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NzIyMzksImV4cCI6MjEwODI0ODIzOX0.8OPjyi8tMKV4PYZzLiI48801eAmZlHdUK_vr5KuNMIA';
@@ -273,7 +288,7 @@
     function logout() {
       currentUser = null;
       document.getElementById('txtLoginId').value = ''; document.getElementById('txtLoginPass').value = '';
-      ['viewAdmin', 'viewTeacher', 'viewStudent', 'viewSimulator', 'mainHeader'].forEach(id => document.getElementById(id).classList.add('hide'));
+      ['viewAdmin', 'viewTeacher', 'viewStudent', 'viewSimulator', 'mainHeader', 'viewCurriculum'].forEach(id => document.getElementById(id).classList.add('hide'));
       document.getElementById('viewLogin').classList.remove('hide');
       document.getElementById('loginStatus').innerText = "";
     }
@@ -383,6 +398,85 @@
       else { lbl.innerText = "Perfectly Centered"; stat.innerText = "Maximum Power!"; stat.className = "text-3xl font-black text-brandGreen"; ro.className = "bg-green-100 border-2 border-green-200 rounded-2xl p-6 mb-8"; btn.className = "btn-3d w-full py-4 mt-8 text-xl bg-orange-500 text-white border-b-4 border-orange-600 pointer-events-auto"; btn.disabled = false; }
     }
     
+    // --- 30-DAY CURRICULUM ENGINE ---
+    const curriculumData = [
+      { phase: "Phase 1: Financial Math (Days 1-10)", color: "brandGreen", icon: "fa-coins", days: [
+        { day: "Day 1", title: "Needs vs. Wants", sprint: "Sprint 1: Define Needs/Wants. Sprint 2: Balance ₹10,000. Sprint 3: Adjust ₹2,000 to Wants." },
+        { day: "Day 2", title: "The 50/30/20 Rule", sprint: "Sprint 1: Calculate percentages. Sprint 2: Input exact figures. Sprint 3: Try 0% savings." },
+        { day: "Day 3", title: "Agricultural Income", sprint: "Sprint 1: Scale to ₹20,000. Sprint 2: Balance app with half-scale numbers. Sprint 3: Debate fertilizers." },
+        { day: "Day 4", title: "The Drought Scenario", sprint: "Sprint 1: Income drops to ₹6,000. Sprint 2: Force negative balance. Sprint 3: Cut all Wants." },
+        { day: "Day 5", title: "Festivals & Inflation", sprint: "Sprint 1: Diwali approaches. Sprint 2: Keep 20% savings with high Wants. Sprint 3: Sacrifice Needs." },
+        { day: "Day 6", title: "Intro to Banking", sprint: "Sprint 1: Savings is ₹2,000. Sprint 2: Calculate 8% interest. Sprint 3: Add interest to next month." },
+        { day: "Day 7", title: "The Gramin Bank Loan", sprint: "Sprint 1: EMI is ₹1,500. Sprint 2: Subtract EMI offline. Sprint 3: Balance remaining ₹8,500." },
+        { day: "Day 8", title: "Medical Emergency", sprint: "Sprint 1: ₹3,000 hospital bill. Sprint 2: Pay from Needs bucket. Sprint 3: Rely on emergency savings." },
+        { day: "Day 9", title: "The Micro-Business", sprint: "Sprint 1: Tailoring business. Sprint 2: Needs = Raw materials. Sprint 3: Maximize savings." },
+        { day: "Day 10", title: "Financial Capstone", sprint: "Sprint 1: Written quiz. Sprint 2: Speed-run 3 incomes. Sprint 3: Sync teacher telemetry." }
+      ]},
+      { phase: "Phase 2: Cyber Shield (Days 11-20)", color: "brandPurple", icon: "fa-shield-halved", days: [
+        { day: "Day 11", title: "Anatomy of a Password", sprint: "Sprint 1: Try first name. Sprint 2: Add mobile number. Sprint 3: Discuss PII dangers." },
+        { day: "Day 12", title: "Brute Force Attack", sprint: "Sprint 1: Teacher guesses passwords. Sprint 2: Pass 3/4 checks. Sprint 3: Lock hacker out." },
+        { day: "Day 13", title: "Uppercase Shift", sprint: "Sprint 1: Caps Lock mechanics. Sprint 2: Alternate casing. Sprint 3: Verify green badge." },
+        { day: "Day 14", title: "Special Characters", sprint: "Sprint 1: Identify symbols. Sprint 2: Replace vowels (M@h@r@shtr@). Sprint 3: Discuss bot confusion." },
+        { day: "Day 15", title: "The Pass-Phrase", sprint: "Sprint 1: Write short sentence. Sprint 2: Use first letters. Sprint 3: Add numbers/symbols." },
+        { day: "Day 16", title: "Protecting the Panchayat", sprint: "Sprint 1: Public Wi-Fi risk. Sprint 2: Group designs password. Sprint 3: First group to succeed wins." },
+        { day: "Day 17", title: "Social Engineering", sprint: "Sprint 1: OTP roleplay. Sprint 2: Zero personal facts password. Sprint 3: Partner guessing game." },
+        { day: "Day 18", title: "Device Sharing", sprint: "Sprint 1: Discuss device sharing. Sprint 2: Practice logging out. Sprint 3: Race to log back in." },
+        { day: "Day 19", title: "Bank Account Defense", sprint: "Sprint 1: Combine Phase 1 & 2. Sprint 2: Build banking password. Sprint 3: Ensure 12+ characters." },
+        { day: "Day 20", title: "Cyber Capstone", sprint: "Sprint 1: Blind dictated test. Sprint 2: Build under 30 seconds. Sprint 3: Sync teacher telemetry." }
+      ]},
+      { phase: "Phase 3: Sports Science (Days 21-25)", color: "orange-500", icon: "fa-person-running", days: [
+        { day: "Day 21", title: "Center of Gravity", sprint: "Sprint 1: Physical balance test. Sprint 2: Replicate slider at 20. Sprint 3: Find 50/50 sweet spot." },
+        { day: "Day 22", title: "Force Generation", sprint: "Sprint 1: Discuss kinetic energy. Sprint 2: Move slider to 80. Sprint 3: Calculate optimal difference." },
+        { day: "Day 23", title: "The Defensive Shot", sprint: "Sprint 1: Absorb kinetic energy. Sprint 2: Mimic defensive block (45-49). Sprint 3: Compare status UI." },
+        { day: "Day 24", title: "The Lofted Drive", sprint: "Sprint 1: Discuss boundary hits. Sprint 2: Find maximum stability. Sprint 3: Trigger success state." },
+        { day: "Day 25", title: "Physics Capstone", sprint: "Sprint 1: Teacher calls shots. Sprint 2: Rapidly adjust weight. Sprint 3: Sync teacher telemetry." }
+      ]},
+      { phase: "Phase 4: The Capstone (Days 26-30)", color: "brandBlue", icon: "fa-flag-checkered", days: [
+        { day: "Day 26", title: "The Triathlon", sprint: "Sprint 1: Money Master (10m). Sprint 2: Cyber Shield (10m). Sprint 3: Sports Science (10m)." },
+        { day: "Day 27", title: "Peer Teaching", sprint: "Sprint 1: Pair students. Sprint 2: Guide without touching screen. Sprint 3: Offline reflection." },
+        { day: "Day 28", title: "Final Assessment", sprint: "Sprint 1: Silent classroom. Sprint 2: 100% all simulators independently. Sprint 3: Save to offline cache." },
+        { day: "Day 29", title: "Live Sync", sprint: "Sprint 1: Wi-Fi Hotspot on. Sprint 2: Background sync data. Sprint 3: Export CSR Report." },
+        { day: "Day 30", title: "Graduation", sprint: "Sprint 1: Distribute CSR reports. Sprint 2: Discuss hardest module. Sprint 3: Principal sign-off." }
+      ]}
+    ];
+
+    function renderCurriculum() {
+      const container = document.getElementById('curriculumList');
+      container.innerHTML = curriculumData.map((phase, pIndex) => `
+        <div class="fun-card overflow-hidden">
+          <button class="w-full p-6 text-left flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors" onclick="document.getElementById('phase${pIndex}').classList.toggle('hide')">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-${phase.color.includes('-') ? phase.color : phase.color + ' bg-opacity-20 text-' + phase.color} rounded-xl flex items-center justify-center text-2xl ${phase.color.includes('-') ? 'text-white' : ''}"><i class="fa-solid ${phase.icon}"></i></div>
+              <h3 class="text-xl font-black text-textDark">${phase.phase}</h3>
+            </div>
+            <i class="fa-solid fa-chevron-down text-textMuted"></i>
+          </button>
+          <div id="phase${pIndex}" class="hide p-6 border-t-2 border-gray-100 space-y-4">
+            ${phase.days.map(d => `
+              <div class="p-4 bg-white border-2 border-gray-100 rounded-xl">
+                <div class="flex gap-3 items-center mb-2">
+                  <span class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full font-black text-sm">${d.day}</span>
+                  <h4 class="font-bold text-lg text-brandBlueDark">${d.title}</h4>
+                </div>
+                <p class="text-textMuted font-bold pl-1">${d.sprint}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSyllabus() {
+      ['viewAdmin', 'viewTeacher', 'viewStudent', 'viewSimulator'].forEach(id => document.getElementById(id).classList.add('hide'));
+      document.getElementById('viewCurriculum').classList.remove('hide');
+      renderCurriculum();
+    }
+
+    function closeSyllabus() {
+      document.getElementById('viewCurriculum').classList.add('hide');
+      completeLoginRouting(currentUser);
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(console.error); });
     }
