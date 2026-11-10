@@ -1,4 +1,4 @@
-const CACHE_NAME = 'funlab-v3';
+const CACHE_NAME = 'funlab-v4';
 const ASSETS = [
   './index.html',
   './manifest.json',
